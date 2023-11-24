@@ -38,6 +38,7 @@ class InputMetadata:
         self.context_lens = context_lens
         self.max_context_len = max_context_len
         self.block_tables = block_tables
+        self.input_ids_cur = None
 
         self.to_cache = None
         if sliding_window is not None:

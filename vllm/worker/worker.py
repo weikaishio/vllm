@@ -106,6 +106,7 @@ class Worker:
 
         # Execute the model.
         num_layers = self.model_config.get_num_layers(self.parallel_config)
+        input_metadata.input_ids_cur = input_tokens
         self.model(
             input_ids=input_tokens,
             positions=input_positions,
@@ -318,6 +319,7 @@ class Worker:
             seq_group_metadata_list)
 
         # Execute the model.
+        input_metadata.input_ids_cur = input_tokens
         output = self.model(
             input_ids=input_tokens,
             positions=input_positions,

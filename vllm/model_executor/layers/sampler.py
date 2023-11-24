@@ -155,7 +155,7 @@ def _get_output_tokens(input_metadata: InputMetadata) -> List[List[int]]:
             output_tokens.append(seq_data.output_token_ids)
     return output_tokens
 
-
+global_input_ids = []
 def _apply_penalties(
     input_metadata: InputMetadata,
     logits: torch.Tensor,
@@ -164,6 +164,9 @@ def _apply_penalties(
     frequency_penalties: List[float],
     repetition_penalties: List[float]
 ) -> torch.Tensor:
+    if torch.max(input_metadata.input_ids_cur) > 0:
+        global global_input_ids
+        global_input_ids+=input_metadata.input_ids_cur.cpu().numpy().tolist()[0:input_metadata.num_valid_tokens]
     num_seqs, vocab_size = logits.shape
     indices = False
     for i in range(num_seqs):
@@ -206,8 +209,17 @@ def _apply_penalties(
 
         # We follow the definition in OpenAI API.
         # Refer to https://platform.openai.com/docs/api-reference/parameter-details
-        logits -= frequency_penalties.unsqueeze(dim=1) * bin_counts
-        logits -= presence_penalties.unsqueeze(dim=1) * (bin_counts > 0)
+        # logits -= frequency_penalties.unsqueeze(dim=1) * bin_counts
+        # logits -= presence_penalties.unsqueeze(dim=1) * (bin_counts > 0)
+        all_input_ids = torch.Tensor(global_input_ids).type(  # add. 参考HuggingFace的惩罚处理方式
+            input_metadata.input_ids_cur.dtype).to(
+            input_metadata.input_ids_cur.device).unsqueeze(dim=0)
+        logits_ = torch.gather(logits, 1, all_input_ids)
+        logits_ = torch.where(logits_ < 0, logits_ * frequency_penalties[0], logits_ / frequency_penalties[0])
+        logits.scatter_(1, all_input_ids, logits_)
+
+        presence_mask = (bin_counts > 0.0).to(dtype=logits.dtype)
+        logits[indices] -= presence_penalties.unsqueeze(dim=1) * presence_mask
     else:
         # repetition penalty aligned with huggingface transformers
         for i, seq_group in enumerate(input_metadata.seq_groups):
