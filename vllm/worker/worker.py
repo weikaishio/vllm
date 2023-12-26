@@ -14,7 +14,6 @@ from vllm.sampling_params import SamplingParams
 from vllm.sequence import SamplerOutput, SequenceData, SequenceGroupMetadata
 from vllm.worker.cache_engine import CacheEngine
 from vllm.utils import get_gpu_memory, get_max_shared_memory_bytes
-from vllm.model_executor.layers.sampler import global_input_ids
 
 
 class Worker:
@@ -163,8 +162,6 @@ class Worker:
         slot_mapping: List[int] = []
 
         # Add prompt tokens.
-        global global_input_ids
-        global_input_ids = []
         prompt_lens: List[int] = []
         for seq_group_metadata in seq_group_metadata_list:
             if not seq_group_metadata.is_prompt:

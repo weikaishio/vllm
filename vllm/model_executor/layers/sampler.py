@@ -166,6 +166,8 @@ def _apply_penalties(
 ) -> torch.Tensor:
     if torch.max(input_metadata.input_ids_cur) > 0:
         global global_input_ids
+        if input_metadata.num_valid_tokens > 1:
+            global_input_ids = []
         global_input_ids+=input_metadata.input_ids_cur.cpu().numpy().tolist()[0:input_metadata.num_valid_tokens]
     num_seqs, vocab_size = logits.shape
     indices = False
