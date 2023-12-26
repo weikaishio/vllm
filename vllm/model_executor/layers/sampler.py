@@ -211,7 +211,7 @@ def _apply_penalties(
         # Refer to https://platform.openai.com/docs/api-reference/parameter-details
         # logits -= frequency_penalties.unsqueeze(dim=1) * bin_counts
         # logits -= presence_penalties.unsqueeze(dim=1) * (bin_counts > 0)
-        all_input_ids = torch.Tensor(global_input_ids).type(  # add. 参考HuggingFace的惩罚处理方式
+        all_input_ids = torch.Tensor(global_input_ids).type(  # add. 参考HuggingFace的惩罚处理方式，transformers/generation/logits_process.py：322
             input_metadata.input_ids_cur.dtype).to(
             input_metadata.input_ids_cur.device).unsqueeze(dim=0)
         logits_ = torch.gather(logits, 1, all_input_ids)
